@@ -19,6 +19,7 @@ import com.wuwenze.poi.convert.WriteConverter;
 import com.wuwenze.poi.exception.ExcelKitRuntimeException;
 import com.wuwenze.poi.pojo.ExcelMapping;
 import com.wuwenze.poi.pojo.ExcelProperty;
+import com.wuwenze.poi.util.BeanUtil;
 import com.wuwenze.poi.util.DateUtil;
 import com.wuwenze.poi.util.POIUtil;
 import com.wuwenze.poi.util.ValidatorUtil;
@@ -26,6 +27,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.poi.hssf.usermodel.HSSFDataFormat;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -133,7 +135,7 @@ public class ExcelXlsxWriter {
                                                     ExcelProperty property, CellStyle CELL_STYLE_INT) {
     Object cellValue;
     try {
-      cellValue = BeanUtils.getProperty(entity, property.getName());
+        cellValue = PropertyUtils.getProperty(entity, property.getName());
     } catch (Throwable e) {
       throw new ExcelKitRuntimeException(e);
     }
