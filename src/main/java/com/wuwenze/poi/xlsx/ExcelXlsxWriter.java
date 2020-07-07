@@ -26,6 +26,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.poi.hssf.usermodel.HSSFDataFormat;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -64,6 +65,10 @@ public class ExcelXlsxWriter {
    */
   public SXSSFWorkbook generateXlsxWorkbook(List<?> data, boolean isTemplate) {
     SXSSFWorkbook workbook = POIUtil.newSXSSFWorkbook();
+
+    CellStyle CELL_STYLE_INT = workbook.createCellStyle();
+    CELL_STYLE_INT.setDataFormat(HSSFDataFormat.getBuiltinFormat("0"));
+
     List<ExcelProperty> propertyList = mExcelMapping.getPropertyList();
     double sheetNo = Math.ceil(data.size() / (double) mMaxSheetRecords);
     for (int index = 0; index <= (sheetNo == 0.0 ? sheetNo : sheetNo - 1); index++) {
@@ -76,7 +81,7 @@ public class ExcelXlsxWriter {
           SXSSFRow bodyRow = POIUtil.newSXSSFRow(sheet, i + 1 - startNo);
           for (int j = 0; j < propertyList.size(); j++) {
             SXSSFCell cell = POIUtil.newSXSSFCell(bodyRow, j);
-            ExcelXlsxWriter.buildCellValueByExcelProperty(cell, data.get(i), propertyList.get(j));
+            ExcelXlsxWriter.buildCellValueByExcelProperty(cell, data.get(i), propertyList.get(j), CELL_STYLE_INT);
           }
         }
       }
@@ -125,7 +130,7 @@ public class ExcelXlsxWriter {
   }
 
   private static void buildCellValueByExcelProperty(SXSSFCell cell, Object entity,
-      ExcelProperty property) {
+                                                    ExcelProperty property, CellStyle CELL_STYLE_INT) {
     Object cellValue;
     try {
       cellValue = BeanUtils.getProperty(entity, property.getName());
@@ -160,8 +165,27 @@ public class ExcelXlsxWriter {
         cell.setCellValue(writeConverter.convert(cellValue));
         return;
       }
-      cell.setCellValue(String.valueOf(cellValue));
+
+      if (cellValue instanceof String) {
+        cell.setCellValue((String)cellValue);
+      } else if (cellValue instanceof Number){
+        cell.setCellValue(Double.parseDouble(String.valueOf(cellValue)));
+        if (cellValue instanceof Integer || cellValue instanceof Long) {
+          cell.setCellStyle(CELL_STYLE_INT);
+        }
+      } else {
+        cell.setCellValue((String)cellValue);
+      }
     }
+  }
+
+  /**
+   * 是否是整型值（没有小数点的）。
+   * @param cellValue
+   * @return
+   */
+  private static boolean isIntegerValue(Object cellValue) {
+    return false;
   }
 
   private CellStyle mHeaderCellStyle = null;
@@ -189,4 +213,5 @@ public class ExcelXlsxWriter {
     }
     return mHeaderCellStyle;
   }
+
 }
